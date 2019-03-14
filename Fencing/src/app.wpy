@@ -1,0 +1,194 @@
+<style lang="less">
+  @import '/css/app.less';
+  .layout {
+    width: @maxWidth;
+    min-height: @maxHeight;
+    box-sizing: border-box;
+  }
+</style>
+
+<script>
+  import wepy from 'wepy'
+  export default class extends wepy.app {
+    config = {
+      pages: [
+        'pages/index/index',
+        'pages/my/my',
+        'pages/my/myRecord/myRecord',
+        'pages/my/myRecord/myRecordDetail/myRecordDetail',
+        'pages/my/myData/myData',
+        'pages/score/score',
+        'pages/my/myInfoModify/myInfoModify',
+        'pages/score/gameReport/gameReport'
+      ],
+      window: {
+        backgroundTextStyle: 'light',
+        navigationBarBackgroundColor: '#fff',
+        navigationBarTitleText: 'WeChat',
+        navigationBarTextStyle: 'black'
+      },
+      tabBar: {
+        color: '#2c2c2c',
+        borderStyle: 'white',
+        selectedColor: '#3EACA8',
+        backgroundColor: 'white',
+        list: [{
+          pagePath: 'pages/index/index',
+          iconPath: 'images/navigateBar/icon-home.png',
+          selectedIconPath: 'images/navigateBar/icon-home-selected.png',
+          text: '主页'
+        },
+        {
+          pagePath: 'pages/score/score',
+          iconPath: 'images/navigateBar/icon-calculator.png',
+          selectedIconPath: 'images/navigateBar/icon-calculator-selected.png',
+          text: '裁判器'
+        },
+        {
+          pagePath: 'pages/my/my',
+          iconPath: 'images/navigateBar/icon-me.png',
+          selectedIconPath: 'images/navigateBar/icon-me-selected.png',
+          text: '我的'
+        }
+        ]
+      }
+    };
+    // 全局变量
+    globalData = {
+      //  请求地址
+      // URL: 'http://47.107.178.179:8080/',
+      URL: 'https://fencingsportstech.com/',
+      // 小程序 AppId和AppSecret
+      AppId: 'wx8144c4c7a3a50d11',
+      AppSecret: '0a8e066660fbefd24bab2d5dec07e784',
+      openId: '',
+      sessionKey: '',
+      // 用户表单信息
+      userInfo: {
+        code: ''
+        // name: '',
+        // telPhone: '',
+        // gender: '',
+        // date: '',
+        // city: ''
+      },
+      // 用户比赛生涯信息
+      userCareer: {
+        code: '',
+        attack: 0,
+        defend: 0,
+        counterattack: 0,
+        victory: 0,
+        total: 0
+      },
+      // 用户比赛记录
+      userRecord: [],
+      // 标识是否存在比赛记录
+      recordCode: '0'
+    };
+    onLaunch() {
+      const that = this
+      // const URL = 'https://api.weixin.qq.com/sns/jscode2session?appid=APPID&secret=SECRET&js_code=JSCODE&grant_type=authorization_code'
+      // const APPID = this.globalData.AppId
+      // const SECRET = this.globalData.AppSecret
+      // 获取登陆状态
+      wepy.login({
+        success(res) {
+          if (res.code) {
+            // 获取openId
+            wepy.request({
+              url: that.globalData.URL + 'wechat/openid',
+              data: {
+                js_code: res.code
+              },
+              success(res) {
+                that.globalData.openId = res.data.data
+                that.getUserCareer()
+                that.getUserInfo()
+              }
+            })
+          }
+        }
+      })
+    }
+    // 显示加载提示
+    showLoading() {
+      wepy.showLoading({
+        title: '加载中'
+      })
+      setTimeout(function() {
+        wepy.hideLoading()
+      }, 600)
+    }
+    // 显示加载提示和成功提示
+    showLoadingSuccess() {
+      wepy.showLoading({
+        title: '加载中'
+      })
+      setTimeout(function() {
+        wepy.showToast({
+          title: '成功',
+          icon: 'success',
+          duration: 1500
+        })
+        wepy.hideLoading()
+      }, 600)
+    }
+    // 获取用户生涯信息
+    getUserCareer() {
+      const that = this
+      const GLOBAL = that.globalData
+      // 提前获取用户生涯信息
+      wepy.request({
+        url: GLOBAL.URL + 'career/get',
+        data: {
+          openId: GLOBAL.openId
+        },
+        success(res) {
+          if (res.data.code === '0') {
+            GLOBAL.userCareer.code = '0'
+          } else {
+            const _DATA = res.data.data[0]
+            GLOBAL.userCareer = {
+              // code用于记录是否信息是否已存在
+              code: '1',
+              attack: _DATA.attack,
+              defend: _DATA.defend,
+              counterattack: _DATA.counterattack,
+              victory: _DATA.victory,
+              total: _DATA.total
+            }
+          }
+        }
+      })
+    }
+    // 获取用户个人资料
+    getUserInfo() {
+      const that = this
+      const GLOBAL = that.globalData
+      // 提前向服务器请求用户信息
+      wepy.request({
+        url: GLOBAL.URL + 'user/get',
+        data: {
+          openId: GLOBAL.openId
+        },
+        success(res) {
+          if (res.data.code === '0') {
+            GLOBAL.userInfo.code = '0'
+          } else {
+            const _DATA = res.data.data[0]
+            GLOBAL.userInfo = {
+              // code用于记录是否信息是否已存在
+              code: '1',
+              name: _DATA.name,
+              sex: _DATA.sex,
+              telphone: _DATA.telphone,
+              address: _DATA.address,
+              birth: _DATA.birth
+            }
+          }
+        }
+      })
+    }
+  }
+</script>

@@ -1,0 +1,114 @@
+<style lang="less">
+  @import '../../css/app.less';
+  .layout {
+    padding-bottom: 30rpx;
+    background:#f9f9f9;
+  }
+  .career-text {
+    text-align: center;
+    font-size: @text;
+    color: @textColor;
+  }
+  .non-career {
+    margin-top: 100rpx;
+    .displayCenter(@justify-content: center);
+    flex-direction: column;
+    image {
+      width: 128rpx;
+      height: 128rpx;
+      margin-bottom: 15rpx;
+    }
+    span {
+      text-align: center;
+      font-size: @supportText;
+      color: @supportColor;
+    }
+  }
+</style>
+
+<template>
+  <view class="layout">
+    <userInfo></userInfo>
+    <!-- 单元格 -->
+    <myCell></myCell>
+    <!-- 比赛生涯 -->
+    <view class="career-text">生涯概况</view>
+    <block wx:if="{{hasCareer}}">
+      <pieChart></pieChart>
+    </block>
+    <view class="non-career" wx:else>
+      <image src='../../images/my/icon-bad-face.png'></image>
+      <span>暂无数据</span>
+    </view>
+    <Dividing></Dividing>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import Dividing from '../../components/Dividing'
+  import userInfo from './components/userInfo'
+  import myCell from './components/myCell'
+  import pieChart from './components/pieChart'
+  export default class my extends wepy.page {
+    config = {
+      navigationBarTitleText: '我的',
+      usingComponents: {
+        'van-icon': '/components/vant-weapp/icon/index',
+        'van-cell': '/components/vant-weapp/cell/index',
+        'van-cell-group': '/components/vant-weapp/cell-group/index'
+      }
+    }
+    components = {
+      Dividing,
+      userInfo,
+      myCell,
+      pieChart
+    }
+    methods = {}
+    data = {
+      hasCareer: false
+    }
+    computed = {}
+    events = {}
+    onReady() {}
+    onShow() {
+      const that = this
+      const GLOBAL = that.$parent.globalData
+      // 获取缓存中的userInfo存到全局变量
+      wepy.getStorage({
+        key: 'userInfo',
+        success(res) {
+          GLOBAL.userInfo = res.data
+        }
+      })
+      // 是否存在生涯信息
+      this.$parent.globalData.userCareer.code === '1' ? this.hasCareer = true : this.hasCareer = false
+      // 触发子组件画图方法
+      if (this.hasCareer) {
+        const DATA = this.$parent.globalData.userCareer
+        let point = [DATA.attack, DATA.defend, DATA.counterattack]
+        this.$broadcast('drawCareer', point)
+      }
+    }
+    onLoad() {
+      // 显示loading
+      this.$parent.showLoading()
+      const that = this
+      const GLOBAL = that.$parent.globalData
+      // 获取用户比赛记录
+      wepy.request({
+        url: GLOBAL.URL + 'matchrecord/get',
+        data: {
+          openId: GLOBAL.openId
+        },
+        success(res) {
+          if (res.data.code === '1') {
+            GLOBAL.userRecord = res.data.data
+            GLOBAL.recordCode = '1'
+          }
+        }
+      })
+    }
+  }
+</script>

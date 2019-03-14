@@ -1,0 +1,46 @@
+<style lang="less" scoped>
+  @import "../../../css/app.less";
+  .cell-layout {
+    margin-bottom: 40rpx;
+    .cell-title {
+      font-size: @largeText;
+      height: 80rpx;
+      .displayCenter(@justify-content: flex-start);
+      margin-left: 10rpx;
+    }
+  }
+</style>
+<template>
+  <view class="cell-layout">
+    <van-cell size="large" @tap="goMyRecord" center is-link>
+      <view slot="title" class="cell-title">比赛记录</view>
+    </van-cell>
+    <van-cell size="large" @tap="goMyData" center is-link>
+      <view slot="title" class="cell-title">我的数据</view>
+    </van-cell>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  export default class index extends wepy.component {
+    config = {};
+    components = {};
+    data = {};
+    methods = {
+      goMyData() {
+        wepy.navigateTo({
+          url: 'myData/myData'
+        })
+      },
+      goMyRecord() {
+        wepy.navigateTo({
+          url: 'myRecord/myRecord'
+        })
+      }
+    };
+    computed = {};
+    events = {};
+    onLoad() {}
+  }
+</script>

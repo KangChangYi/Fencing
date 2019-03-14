@@ -1,0 +1,90 @@
+<style lang="less">
+  @maxwidth: 100vw;
+  @maxheight: 100vh;
+  @border: 1px red solid;
+  .table {
+    width: 100%;
+    background: #f7f7f7;
+    box-shadow: 1px 1px 7px #DFDFDF;
+  }
+  .tr {
+    width: 100%;
+    display: flex;
+    border-bottom: 1px #EFEFEF solid;
+  }
+  .td-title,
+  .redTd,
+  .greenTd {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 60px;
+  }
+  .td-title {
+    font-size: 14px;
+    color: #070707;
+    font-weight: bold;
+  }
+  .redTd {
+    font-size: 12px;
+    // color: #f57665;
+    color: rgb(255, 62, 88);
+  }
+  .greenTd{
+    font-size: 12px;
+    // color: #45b7b7;
+    color: #4fc04b;
+  }
+</style>
+
+<template>
+  <view class="table">
+    <view class="tr">
+      <view class="td-title">选手</view>
+      <view class="td-title">进攻分</view>
+      <view class="td-title">防守分</view>
+      <view class="td-title">反击分</view>
+      <view class="td-title">总分</view>
+      <view class="td-title">是否胜利</view>
+    </view>
+    <view class="tr">
+      <view class="redTd">{{red.name}}</view>
+      <view class="redTd">{{red.attack}}</view>
+      <view class="redTd">{{red.defense}}</view>
+      <view class="redTd">{{red.counterattack}}</view>
+      <view class="redTd">{{red.redScore}}</view>
+      <view class="redTd">{{red.redWin}}</view>
+    </view>
+    <view class="tr">
+      <view class="greenTd">{{green.name}}</view>
+      <view class="greenTd">{{green.attack}}</view>
+      <view class="greenTd">{{green.defense}}</view>
+      <view class="greenTd">{{green.counterattack}}</view>
+      <view class="greenTd">{{green.greenScore}}</view>
+      <view class="greenTd">{{green.greenWin}}</view>
+    </view>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  export default class gameInfoForm extends wepy.component {
+    components = {}
+    props = {
+      red: Object,
+      green: Object
+    }
+    methods = {}
+    data = {}
+    computed = {}
+    events = {}
+    onReady() {
+    }
+    onShow() {
+    }
+    onLoad() {
+  
+    }
+  }
+</script>

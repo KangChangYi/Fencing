@@ -1,0 +1,80 @@
+<style lang="less">
+  @import '../../../css/app.less';
+  @maxwidth: 100vw;
+  .point-layout {
+    width: @maxwidth;
+    display: flex;
+  }
+  @font-size: 70px;
+  .red-place,
+  .green-place {
+    position: relative;
+    z-index: 999;
+    font-size: @font-size;
+    text-align: center;
+    flex: 1;
+  }
+  .red-place {
+    // color: rgb(255, 47, 47);
+    color: rgb(255, 62, 88);
+  }
+  .green-place {
+    // color: rgb(63, 207, 20);
+    color: #5ce457;
+  }
+  .mid-gap {
+    width: 19.5%;
+    .displayCenter(@justify-content: unset);
+  }
+  .double-button {
+    width: 200rpx;
+    height: 100rpx; // background: #8e8b82;
+    background: #7d8a8d;
+    border-right: 3px #636c6e solid;
+    border-bottom: 3px #636c6e solid;
+    border-radius: 5px;
+    box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.6);
+    color: white;
+    font-size: @supportText;
+    .displayCenter();
+    &:active {
+      background: #636c6e;
+      box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.0);
+    }
+  }
+</style>
+
+<template>
+  <!-- 分数显示区域 -->
+  <view class="point-layout">
+    <view class="red-place">{{redScore}}</view>
+    <view class="mid-gap">
+      <view class="double-button" wx:if="{{switchBoolean}}" @tap="DoubleTap">Double</view>
+      <!-- <van-button plain @tap="DoubleTap" wx:if="{{switchBoolean}}">Double</van-button> -->
+    </view>
+    <view class="green-place">{{greenScore}}</view>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  export default class scoring extends wepy.component {
+    components = {};
+    methods = {
+      // 点击Double
+      DoubleTap() {
+        this.$emit('DoubleTap')
+      }
+    };
+    props = {
+      switchBoolean: Boolean,
+      redScore: Number,
+      greenScore: Number
+    }
+    data = {}
+    watch = {}
+    computed = {}
+    events = {}
+    onLoad() {}
+  }
+</script>

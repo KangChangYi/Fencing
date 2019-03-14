@@ -1,0 +1,171 @@
+<style lang="less" scoped>
+  @import "../../../css/app.less";
+  .layout {
+    padding-top: 40rpx;
+    padding-bottom: 30rpx;
+    background: #f5f5f5;
+  }
+  .record-box {
+    height: 200rpx;
+    width: 90%;
+    margin: auto;
+    margin-bottom: 40rpx;
+    padding: 20rpx 30rpx 30rpx 30rpx;
+    border-radius: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+    background: white;
+    .displayCenter();
+    &:active {
+      background: #f9f9f9;
+    } // 选手区域
+    .player-layout {
+      height: 100%;
+      flex: 1.5;
+      .displayCenter(@justify-content: flex-start);
+      flex-direction: column;
+      .icon {
+        width: 64rpx;
+        height: 64rpx;
+        image {
+          width: 64rpx;
+          height: 64rpx;
+        }
+      } // 选手名字
+      #red,
+      #green {
+        width: 60px;
+        height: 27px;
+        text-align: center;
+        font-size: calc(@mainTitle);
+        font-weight: bold;
+        color: white;
+        border-radius: 10px;
+        padding: 10rpx;
+      }
+      #red {
+        background: #e61c5d;
+      }
+      #green {
+        background: #a6cb12;
+      }
+    } // 日期和比分区域
+    .date-score-layout {
+      height: 100%;
+      flex: 2;
+      .displayCenter(@justify-content: flex-start);
+      flex-direction: column;
+      #time {
+        height: 64rpx;
+        .displayCenter(@justify-content: flex-end);
+        font-size: @text;
+        color: @supportColor;
+      }
+      .score-box {
+        width: 100%;
+        height: 27px;
+        padding: 10rpx;
+        font-weight: bold;
+        font-size: @mainTitle;
+        color: #5e227f;
+        .displayCenter(@justify-content: space-around);
+      }
+    }
+  }
+  .non-career {
+    margin-top: 100rpx;
+    .displayCenter(@justify-content: center);
+    flex-direction: column;
+    image {
+      width: 128rpx;
+      height: 128rpx;
+      margin-bottom: 15rpx;
+    }
+    span {
+      text-align: center;
+      font-size: @supportText;
+      color: @supportColor;
+    }
+  }
+</style>
+
+<template>
+  <view class="layout">
+    <repeat for="{{recordList}}" index="index" key="index" item="item">
+      <view class="record-box" @tap.stop="goToRecordDetail({{index}})">
+        <view class="player-layout">
+          <view class="icon">
+            <image wx:if="{{item.isVictory===false}}" src="../../../images/my/winner-icon.png" />
+          </view>
+          <span id='red'>{{item.redName}}</span>
+        </view>
+        <view class="date-score-layout">
+          <view id="time">{{item.gmtModified}}</view>
+          <view class="score-box">
+            <view>{{item.redAttack+item.redDefend+item.redCounterattack}}</view>
+            <view>-</view>
+            <view>{{item.greenAttack+item.greenDefend+item.greenCounterattack}}</view>
+          </view>
+          <!-- <text class="score-box" space="ensp">5   -   4</text> -->
+        </view>
+        <view class="player-layout">
+          <view class="icon">
+            <image wx:if="{{item.isVictory===true}}" src="../../../images/my/winner-icon.png" />
+          </view>
+          <span id='green'>{{item.greenName}}</span>
+        </view>
+      </view>
+    </repeat>
+    <view class="non-career" wx:if="{{hasRecord===false}}">
+      <image src='../../../images/my/icon-bad-face.png'></image>
+      <span>暂无数据</span>
+    </view>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  export default class myRecord extends wepy.page {
+    config = {
+      navigationBarTitleText: '比赛记录',
+      usingComponents: {}
+    }
+    components = {}
+    data = {
+      recordList: [],
+      hasRecord: false
+    }
+    methods = {
+      goToRecordDetail(index) {
+        const INDEX = index
+        this.$preload('index', INDEX)
+        wepy.navigateTo({
+          url: './myRecordDetail/myRecordDetail'
+        })
+      }
+    }
+    computed = {}
+    events = {}
+    onShow() {
+      const GLOBAL = this.$parent.globalData
+      const _userRecord = GLOBAL.userRecord
+      // 改变date字符串形如  01-10
+      const changeDate = (item, index) => {
+        if (item.gmtModified.length > 5) {
+          _userRecord[index].gmtModified = item.gmtModified.substring(5, 10)
+        }
+      }
+      _userRecord.forEach(changeDate)
+      this.recordList = _userRecord
+      // 判断是否存在比赛记录
+      if (GLOBAL.userRecord.length === 0) {
+        this.hasRecord = false
+      } else {
+        this.hasRecord = true
+      }
+      // this.$parent.showLoading()
+      this.$apply()
+    }
+    onLoad() {}
+  }
+</script>

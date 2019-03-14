@@ -1,0 +1,163 @@
+<style lang="less" scoped>
+  @import '../../../../css/app.less';
+  .pie-chart-layout {
+    width: 100%;
+    margin-top: 50rpx;
+  }
+  .player-name-layout {
+    width: 100%;
+    display: flex;
+  }
+  .red-name,
+  .green-name {
+    width: 100%;
+    font-weight: bold;
+    font-size: @text;
+    color: @textColor;
+    text-align: center;
+  }
+  .canvas-layout {
+    width: 100%;
+    height: fit-content; // position: relative;
+    // z-index: 0;
+  }
+  .canvas {
+    width: 100%;
+    height: 175px;
+  }
+</style>
+
+<template>
+  <view class="pie-chart-layout">
+    <view class="player-name-layout">
+      <view class="red-name">{{playerName.redName}}</view>
+      <view class="green-name">{{playerName.greenName}}</view>
+    </view>
+    <view class="canvas-layout">
+      <canvas wx:if="{{!imgCanvas}}" canvas-id="red" class="canvas"></canvas>
+      <image wx:else src="{{imgCanvas}}" style="width: 100%; height: 175px;" />
+    </view>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  const rd = wepy.createCanvasContext('red')
+  export default class pieChart extends wepy.component {
+    components = {}
+    methods = {}
+    data = {
+      playerName: {},
+      // redPoint: [this.red.attack, this.red.defense, this.red.counterattack],
+      redPoint: [],
+      greenPoint: [],
+      // 画布图片化
+      imgCanvas: ''
+    }
+    props = {}
+    computed = {}
+    events = {
+      drawCanvas(red, green, winScore) {
+        this.redPoint = [red.attack, red.defense, red.counterattack]
+        this.greenPoint = [green.attack, green.defense, green.counterattack]
+        this.playerName = {
+          redName: red.name,
+          greenName: green.name
+        }
+      },
+      // 父组件控制是否显示canvas   因为层级关系将canvas转换成图片显示
+      isShowCanvas() {
+        const that = this
+        wepy.canvasToTempFilePath({
+          x: 0,
+          y: 0,
+          width: 375,
+          height: 175,
+          canvasId: 'red',
+          success(res) {
+            that.imgCanvas = res.tempFilePath
+            that.$apply()
+          }
+        })
+      }
+    }
+    onLoad() {
+      // 获取屏幕宽度
+      let _WindowWidth
+      wepy.getSystemInfo({
+        success: (res) => {
+          _WindowWidth = res.windowWidth
+        }
+      })
+      // 定义基本属性
+      // console.log(this.redPoint)
+      let _redSum = this.redPoint[0] + this.redPoint[1] + this.redPoint[2]
+      let _greenSum = this.greenPoint[0] + this.greenPoint[1] + this.greenPoint[2]
+      let _redvalue = [this.redPoint[0] / _redSum * 100, this.redPoint[1] / _redSum * 100, this.redPoint[2] / _redSum * 100]
+      let _greenvalue = [this.greenPoint[0] / _greenSum * 100, this.greenPoint[1] / _greenSum * 100, this.greenPoint[2] / _greenSum * 100]
+      let _color = ['#45b7b8', '#f8b500', '#ece8d9']
+      let _PointText = ['进攻得分', '防守得分', '反击得分']
+      let _start = 0
+      let _end = 0
+      rd.strokeStyle = 'white'
+      rd.lineWidth = 3
+      // 红方饼图
+      for (let i = 0; i < _redvalue.length; i++) {
+        rd.fillStyle = _color[i]
+        _end += _redvalue[i] / 50 * Math.PI
+        rd.beginPath()
+        rd.moveTo(_WindowWidth / 4, 80)
+        rd.arc(_WindowWidth / 4, 80, 70, _start, _end)
+        rd.fill()
+        rd.closePath()
+        rd.stroke()
+        _start += _redvalue[i] / 50 * Math.PI
+      }
+      // 初始化角度
+      _start = 0
+      _end = 0
+      // 绿方饼图
+      for (let i = 0; i < _greenvalue.length; i++) {
+        rd.fillStyle = _color[i]
+        _end += _greenvalue[i] / 50 * Math.PI
+        rd.beginPath()
+        rd.moveTo(_WindowWidth * 0.75, 80)
+        rd.arc(_WindowWidth * 0.75, 80, 70, _start, _end)
+        rd.fill()
+        rd.closePath()
+        rd.stroke()
+        _start += _greenvalue[i] / 50 * Math.PI
+      }
+      // 绘制得分标识文字
+      let _TextPlace = _WindowWidth
+      for (let i = 0; i < _PointText.length; i++) {
+        rd.strokeStyle = _color[i]
+        rd.lineWidth = 8
+        rd.fillStyle = '#454545'
+        rd.font = '13px serif'
+        rd.beginPath()
+        rd.moveTo(_TextPlace / 4 - 15, 165)
+        rd.lineTo(_TextPlace / 4 - 15 + 8, 165)
+        rd.fillText(_PointText[i], _TextPlace / 4 - 15 + 13, 170)
+        rd.closePath()
+        rd.stroke()
+        _TextPlace += 300
+      }
+      rd.draw()
+      const that = this
+      setTimeout(() => {
+        wepy.canvasToTempFilePath({
+          x: 0,
+          y: 0,
+          width: 375,
+          height: 175,
+          canvasId: 'red',
+          success(res) {
+            that.imgCanvas = res.tempFilePath
+            that.$apply()
+          }
+        })
+      }, 100)
+    }
+  }
+</script>

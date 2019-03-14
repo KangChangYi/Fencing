@@ -1,0 +1,131 @@
+<style lang="less" scoped>
+  .barGraph-layout {
+    width: 100%;
+    margin-top: 50rpx; // position: relative;
+    // z-index: 0;
+  }
+  .canvas {
+    width: 100%;
+    height: 185px;
+  }
+</style>
+
+<template>
+  <view class="barGraph-layout">
+    <canvas wx:if="{{!imgCanvas}}" canvas-id="Bar" class="canvas"></canvas>
+    <image wx:else src="{{imgCanvas}}" style="width: 100%; height: 185px;" />
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  const br = wepy.createCanvasContext('Bar')
+  export default class barGraph extends wepy.component {
+    components = {}
+    methods = {}
+    data = {
+      // 选手得分
+      redPoint: [],
+      greenPoint: [],
+      // 最高得分制
+      maxScore: 5,
+      // 选手姓名
+      playerName: {},
+      // 图片化canvas
+      imgCanvas: ''
+    }
+    props = {}
+    computed = {}
+    events = {
+      drawCanvas(red, green, winScore) {
+        this.redPoint = [red.attack, red.defense, red.counterattack]
+        this.greenPoint = [green.attack, green.defense, green.counterattack]
+        this.maxScore = winScore
+        this.playerName = {
+          redName: red.name,
+          greenName: green.name
+        }
+      },
+      // 父组件控制是否显示canvas   因为层级关系将canvas转换成图片显示
+      isShowCanvas() {
+        const that = this
+        wepy.canvasToTempFilePath({
+          x: 0,
+          y: 0,
+          width: 375,
+          height: 185,
+          canvasId: 'Bar',
+          success(res) {
+            that.imgCanvas = res.tempFilePath
+            that.$apply()
+          }
+        })
+      }
+    }
+    // 画线
+    drawLine(mx, my, lx, ly, width, color) {
+      br.strokeStyle = color
+      br.lineWidth = width
+      br.beginPath()
+      br.moveTo(mx, my)
+      br.lineTo(lx, ly)
+      br.closePath()
+      br.stroke()
+    }
+    onLoad() {
+      // 获取窗口宽度
+      let _WindowWidth
+      wepy.getSystemInfo({
+        success: (res) => {
+          _WindowWidth = res.windowWidth
+        }
+      })
+      // 定义基本属性
+      let _maxScore = this.maxScore
+      let _startPlace = 45
+      let _endPlace = _WindowWidth - 45
+      let _Width4 = _WindowWidth / 4
+      let _scoreText = ['进攻得分', '防守得分', '反击得分']
+      let _barColor = ['rgb(255, 62, 88)', '#4fc04b']
+      br.strokeStyle = 'gray'
+      br.lineWidth = 1
+      br.fillStyle = '#303133'
+      br.font = '13px serif'
+      br.beginPath()
+      let _dashedPlace = 165
+      // Y刻度轴和虚线
+      for (let i = 0; i <= _maxScore; i += Math.round(_maxScore / 5)) {
+        br.fillText(i, _startPlace - 12, _dashedPlace)
+        this.drawLine(_startPlace, _dashedPlace - 5, _endPlace, _dashedPlace - 5, 1, '#f1f1f1')
+        _dashedPlace -= 26
+      }
+      let _baselinePlace = 160
+      // 柱状图
+      let _increaseHeight = 26
+      if (_maxScore === 15) {
+        _increaseHeight = 26 / 3
+      }
+      for (let i = 0; i < 3; i++) {
+        this.drawLine((i + 1) * _Width4 - 10, _baselinePlace, (i + 1) * _Width4 - 10, _baselinePlace - this.redPoint[i] * _increaseHeight, 15, _barColor[0])
+        this.drawLine((i + 1) * _Width4 + 10, _baselinePlace, (i + 1) * _Width4 + 10, _baselinePlace - this.greenPoint[i] * _increaseHeight, 15, _barColor[1])
+      }
+      // y轴x轴
+      this.drawLine(_startPlace, _baselinePlace, _startPlace, 20, 0.7, 'gray')
+      this.drawLine(_startPlace, _baselinePlace, _endPlace, _baselinePlace, 0.7, 'gray')
+      // x轴文字
+      for (let i = 0; i < _scoreText.length; i++) {
+        br.fillText(_scoreText[i], (i + 1) * _Width4 - 20, 177)
+      }
+      // 运动员名字
+      let _halfWindowWidth = _WindowWidth / 2 - 60
+      this.drawLine(_halfWindowWidth, 10, _halfWindowWidth + 5, 10, 5, _barColor[0])
+      br.fillText(this.playerName.redName, _halfWindowWidth + 10, 14)
+      this.drawLine(_halfWindowWidth + 80, 10, _halfWindowWidth + 85, 10, 5, _barColor[1])
+      br.fillText(this.playerName.greenName, _halfWindowWidth + 90, 14)
+      // 结束
+      br.closePath()
+      br.stroke()
+      br.draw()
+    }
+  }
+</script>

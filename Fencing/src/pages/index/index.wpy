@@ -1,0 +1,133 @@
+<style lang="less" scoped>
+  @import '../../css/app.less';
+  .header-box {
+    width: 90%;
+    margin: auto;
+    margin-bottom: 20rpx;
+    .displayCenter(@justify-content: space-between);
+    .date-box {
+      text-align: left;
+      font-size: @supportText;
+      color: @textColor;
+    }
+    .today-box {
+      text-align: left;
+      font-size: calc(@mainTitle+5px);
+      color: @titleColor;
+      font-weight: bold;
+    }
+    .userAvatar-box {
+      border-radius: 5px;
+      &:active {
+        background: #f3f3f3;
+      }
+      .userAvatar {
+        border-radius: 50%;
+        display: flex;
+        overflow: hidden;
+        width: 105rpx;
+        height: 105rpx;
+      }
+    }
+  }
+  .content-box {
+    width: 90%;
+    margin: auto;
+  }
+  .loading-box {
+    margin-bottom: 30rpx;
+    .displayCenter;
+    .loading {
+      font-size: @text;
+      color: @textColor;
+    }
+  }
+</style>
+
+<template>
+  <view class="layout">
+    <!-- 日期和头像 -->
+    <view class="header-box">
+      <view>
+        <view class="date-box">{{NowDate}}</view>
+        <view class="today-box">Today</view>
+      </view>
+      <view class="userAvatar-box" @tap.stop="clickAvatar">
+        <open-data class="userAvatar" type="userAvatarUrl"> </open-data>
+      </view>
+    </view>
+    <!-- 内容 -->
+    <view class="content-box">
+      <DailyInfo></DailyInfo>
+    </view>
+    <!-- 上拉加载 -->
+    <view class="loading-box">
+      <span wx:if="{{loading}}" class="loading">加载中...</span>
+      <span wx:if="{{loadingComplete}}" class="loading">已加载全部</span>
+    </view>
+    <!-- 导航栏的水平线 -->
+    <Dividing></Dividing>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import Dividing from '../../components/Dividing'
+  import DailyInfo from './components/dailyInfo'
+  export default class index extends wepy.page {
+    config = {
+      navigationBarTitleText: '主页',
+      usingComponents: {}
+    }
+    components = {
+      Dividing,
+      DailyInfo
+    }
+    data = {
+      // 加载中
+      loading: false,
+      // 加载完成
+      loadingComplete: false,
+      // 从子组件获取的当前日期
+      NowDate: ''
+    }
+    methods = {
+      clickAvatar() {
+        wepy.switchTab({
+          url: '../my/my'
+        })
+      }
+    }
+    computed = {}
+    events = {
+      // 从子组件获取的当前日期
+      getDayAndWeek(value) {
+        this.NowDate = value
+        this.$apply()
+      },
+      loadNumber(loadNumber) {
+        const number = loadNumber
+        if (number === 4) {
+          this.loadingComplete = true
+        }
+      }
+    }
+    // 上拉触底
+    onReachBottom() {
+      let that = this
+      if (this.loadingComplete) return
+      this.loading = true
+      // 触发子组件懒加载方法继续加载
+      this.$broadcast('lazyLoad')
+      setTimeout(() => {
+        that.loading = false
+        that.$apply()
+      }, 2000)
+    }
+    onShow() {}
+    onLoad() {
+      // 显示loading
+      this.$parent.showLoading()
+    }
+  }
+</script>

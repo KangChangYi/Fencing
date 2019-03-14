@@ -1,0 +1,129 @@
+<style lang="less">
+  @import '../../../css/app.less';
+  @halfWidth: 55vw;
+  .color-block-layout {
+    width: @halfWidth;
+    margin: auto;
+    margin-top: 120rpx;
+  }
+  .color-block-frame {
+    .displayCenter(@justify-content: space-around);
+  }
+  .yellow-card,
+  .red-card,
+  .black-card {
+    width: 70rpx;
+    height: 100rpx;
+    border-radius: 5px;
+    box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.6);
+  }
+  .yellow-card {
+    background: rgb(242, 255, 65);
+    border-right: 3px rgb(184, 194, 49) solid;
+    border-bottom: 3px rgb(184, 194, 49) solid;
+    &:active {
+      background: rgb(184, 194, 49);
+      box-shadow: unset;
+    }
+  }
+  .red-card {
+    background: red;
+    border-right: 3px rgb(199, 0, 0) solid;
+    border-bottom: 3px rgb(199, 0, 0) solid;
+    &:active {
+      background: rgb(199, 0, 0);
+      box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.0);
+    }
+  }
+  .black-card {
+    background: rgba(0, 0, 0, 0.6);
+    border-right: 3px rgba(0, 0, 0, 0.9) solid;
+    border-bottom: 3px rgba(0, 0, 0, 0.9) solid;
+    &:active {
+      background: rgba(0, 0, 0, 0.9);
+      box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.0);
+    }
+  }
+  .popup-layout {
+    width: 400rpx;
+    height: 175rpx;
+  }
+  .popup-font {
+    font-size: @text;
+    color: @textColor;
+    padding: 10px;
+  }
+  .button-layout {
+    position: absolute;
+    bottom: 5px;
+    left: 5px;
+    right: 5px;
+    display: flex;
+  }
+  .van-button--danger,
+  .van-button--primary {
+    width: 100%;
+  }
+</style>
+
+<template>
+  <!--  罚牌显示区域 -->
+  <view class="color-block-layout">
+    <div class="color-block-frame">
+      <view class="black-card" @tap="tapColorBlock('black')"> </view>
+      <view class="red-card" @tap="tapColorBlock('red')"> </view>
+      <view class="yellow-card" @tap="tapColorBlock('yellow')"> </view>
+    </div>
+    <!-- 遮罩层 -->
+    <van-popup show="{{ show }}" bind:close="onClose" custom-style="background:#f3f3f3;border-radius: 3px;">
+      <view class="popup-layout">
+        <view class="popup-font">选择{{choseColor}}给: </view>
+        <view class="button-layout">
+          <van-button class="van-button--danger" @tap.stop="penalTo('red')" type="danger">红方</van-button>
+          <view style="width:20rpx"></view>
+          <van-button class="van-button--primary" @tap.stop="penalTo('green')" type="primary">绿方</van-button>
+        </view>
+      </view>
+    </van-popup>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  export default class colorBlock extends wepy.component {
+    components = {}
+    methods = {
+      // 点击颜色区域
+      tapColorBlock(color) {
+        this.cColor = color
+        if (color === 'yellow') {
+          this.choseColor = '黄牌'
+        } else if (color === 'red') {
+          this.choseColor = '红牌'
+        } else {
+          this.choseColor = '黑牌'
+        }
+        this.show = true
+      },
+      // 点击弹出框选择罚牌给
+      penalTo(whoColor) {
+        this.$emit('penalTo', whoColor, this.cColor)
+        this.show = false
+      },
+      // 弹出层关闭
+      onClose() {
+        this.show = false
+      }
+    }
+    data = {
+      // 选择的色块
+      choseColor: '',
+      cColor: '',
+      // 遮罩层隐藏显示
+      show: false
+    }
+    computed = {}
+    events = {}
+    onload() {}
+  }
+</script>

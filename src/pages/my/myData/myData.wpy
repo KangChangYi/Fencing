@@ -1,0 +1,192 @@
+<style lang="less" scoped>
+  @import '../../../css/app.less';
+  .layout {
+    color: white;
+    background:#f9f9f9;
+    .sumNumber-layout {
+      padding: 20rpx;
+      .sumNumber-box {
+        height: 250rpx;
+        padding: 0 10rpx 10rpx 10rpx;
+        border-radius: 15rpx;
+        .displayCenter();
+        flex-direction: column;
+        span {
+          font-size: @secondTitle;
+          text-indent: 20rpx;
+          letter-spacing: 20rpx;
+          margin: 10rpx;
+        }
+        view {
+          width: 100%;
+          height: 100%;
+          font-size: 120rpx;
+          text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.6);
+          border-radius: 15rpx;
+          .displayCenter();
+        }
+      }
+    }
+    .win-score-layout {
+      padding: 0 20rpx 20rpx 20rpx;
+      .displayCenter(@justify-content: space-between);
+      .win-score-box {
+        flex: 1;
+        height: 250rpx;
+        padding: 0 10rpx 10rpx 10rpx;
+        border-radius: 15rpx;
+        .displayCenter();
+        flex-direction: column;
+        span {
+          font-size: @secondTitle;
+          text-indent: 20rpx;
+          letter-spacing: 20rpx;
+          margin: 10rpx;
+        }
+        view {
+          width: 100%;
+          height: 100%;
+          font-size: 100rpx;
+          text-shadow: 2px 2px 7px rgba(0, 0, 0, 0.6);
+          border-radius: 15rpx;
+          .displayCenter();
+        }
+      }
+    }
+    .score-type-layout {
+      padding: 0 20rpx 20rpx 20rpx;
+      .displayCenter(@justify-content: space-between);
+      .score-type-box {
+        flex: 1;
+        height: 180rpx;
+        padding: 0 10rpx 10rpx 10rpx;
+        border-radius: 15rpx;
+        .displayCenter();
+        flex-direction: column;
+        span {
+          font-size: @largeText;
+          text-indent: 5rpx;
+          letter-spacing: 5rpx;
+          margin: 10rpx;
+        }
+        view {
+          width: 100%;
+          height: 100%;
+          font-size: 60rpx;
+          text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.6);
+          border-radius: 15rpx;
+          background: #ff8063;
+          .displayCenter();
+        }
+      }
+    }
+  }
+  .non-career {
+    padding-top: 100rpx;
+    .displayCenter(@justify-content: center);
+    flex-direction: column;
+    image {
+      width: 128rpx;
+      height: 128rpx;
+      margin-bottom: 15rpx;
+    }
+    span {
+      text-align: center;
+      font-size: @supportText;
+      color: @supportColor;
+    }
+  }
+</style>
+
+<template>
+  <view class="layout">
+    <block wx:if="{{hasCareer}}">
+      <view class="sumNumber-layout">
+        <view class="sumNumber-box" style="background:rgb(60, 107, 148)">
+          <span>总场次</span>
+          <view style="background: rgb(68, 128, 180);">{{sumNumber}}</view>
+        </view>
+      </view>
+      <view class="win-score-layout">
+        <view class="win-score-box" style='margin-right:20rpx;background:#e76e52;'>
+          <span>胜率</span>
+          <view style="background:#ff8063;">{{victoryRate}}%</view>
+        </view>
+        <view class="win-score-box" style="background:rgb(58, 151, 148);;">
+          <span>总得分</span>
+          <view style="background:#3EACA8;">{{sumScore}}</view>
+        </view>
+      </view>
+      <view class="score-type-layout">
+        <view class="score-type-box" style="margin-right:20rpx;background:#b3da92;">
+          <span>进攻得分</span>
+          <view style="background: #d0efb5;">{{pointType[0]}}</view>
+        </view>
+        <view class="score-type-box" style="margin-right:20rpx;background:#b3da92;">
+          <span>防守得分</span>
+          <view style="background: #d0efb5;">{{pointType[1]}}</view>
+        </view>
+        <view class="score-type-box" style="background:#b3da92;">
+          <span>反击得分</span>
+          <view style="background: #d0efb5;">{{pointType[2]}}</view>
+        </view>
+      </view>
+      <pieChart></pieChart>
+    </block>
+    <view class="non-career" wx:else>
+      <image src='../../../images/my/icon-bad-face.png'></image>
+      <span>暂无数据</span>
+    </view>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import pieChart from '../components/pieChart'
+  export default class index extends wepy.page {
+    config = {
+      navigationBarTitleText: '我的数据',
+      usingComponents: {
+        'van-button': '/components/vant-weapp/button/index'
+      }
+    }
+    components = {
+      pieChart
+    }
+    data = {
+      // 总场次
+      sumNumber: 0,
+      // 胜率
+      victoryRate: 0,
+      // 得分情况
+      pointType: [],
+      hasCareer: false
+    }
+    methods = {}
+    computed = {
+      sumScore() {
+        const _SCORE = this.pointType
+        return _SCORE[0] + _SCORE[1] + _SCORE[2]
+      }
+    }
+    events = {}
+    onShow() {
+      // const DATA = this.$parent.globalData.userCareer
+      // this.point = [DATA.attack, DATA.defend, DATA.counterattack]
+      const CAREER = this.$parent.globalData.userCareer
+      if (CAREER.code === '0') {
+        this.hasCareer = false
+      } else {
+        this.hasCareer = true
+      }
+      // 得分分类
+      this.pointType = [CAREER.attack, CAREER.defend, CAREER.counterattack]
+      // 求总场次
+      this.sumNumber = CAREER.total
+      // 求胜率
+      this.victoryRate = (CAREER.victory / CAREER.total * 100).toFixed(1)
+      this.$broadcast('drawCareer', this.pointType)
+    }
+    onLoad() {}
+  }
+</script>

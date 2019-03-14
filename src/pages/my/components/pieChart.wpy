@@ -1,0 +1,88 @@
+<style lang="less" scoped>
+  .pie-layout {
+    height: 500rpx;
+    width: 100%; // box-shadow: 0 0 30px rgba(0, 0, 0, 0.15);
+    // border-radius: 10px;
+  }
+  .canvas {
+    width: 100%;
+    height: 500rpx;
+  }
+</style>
+
+<template>
+  <view class="pie-layout">
+    <canvas canvas-id="red" class="canvas"></canvas>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  const rd = wepy.createCanvasContext('red')
+  export default class index extends wepy.component {
+    components = {}
+    data = {
+      // 得分情况
+      point: []
+    }
+    methods = {}
+    computed = {}
+    events = {
+      drawCareer(point) {
+        this.point = point
+        this.draw()
+      }
+    }
+    onLoad() {
+    }
+    draw() {
+      // 获取屏幕宽度
+      let _WindowWidth
+      wepy.getSystemInfo({
+        success: (res) => {
+          _WindowWidth = res.windowWidth
+        }
+      })
+      // 总分
+      let _sumScore = this.point[0] + this.point[1] + this.point[2]
+      // 各得分占百分比
+      let _value = [this.point[0] / _sumScore * 100, this.point[1] / _sumScore * 100, this.point[2] / _sumScore * 100]
+      // 画笔颜色
+      let _color = ['#45b7b8', '#f8b500', '#ece8d9']
+      // 得分文字描述
+      let _PointText = ['进攻得分', '防守得分', '反击得分']
+      let _start = 0
+      let _end = 0
+      rd.strokeStyle = 'white'
+      rd.lineWidth = 3
+      // 饼图
+      for (let i = 0; i < _value.length; i++) {
+        rd.fillStyle = _color[i]
+        _end += _value[i] / 50 * Math.PI
+        rd.beginPath()
+        rd.moveTo(_WindowWidth / 2, 90)
+        rd.arc(_WindowWidth / 2, 90, 80, _start, _end)
+        rd.fill()
+        rd.closePath()
+        rd.stroke()
+        _start += _value[i] / 50 * Math.PI
+      }
+      // 绘制得分标识文字
+      let _TextPlace = _WindowWidth
+      for (let i = 0; i < _PointText.length; i++) {
+        rd.strokeStyle = _color[i]
+        rd.lineWidth = 8
+        rd.fillStyle = '#454545'
+        rd.font = '13px serif'
+        rd.beginPath()
+        rd.moveTo(_TextPlace / 4 - 15, 195)
+        rd.lineTo(_TextPlace / 4 - 15 + 8, 195)
+        rd.fillText(_PointText[i], _TextPlace / 4 - 15 + 13, 200)
+        rd.closePath()
+        rd.stroke()
+        _TextPlace += 300
+      }
+      rd.draw()
+    }
+  }
+</script>

@@ -1,0 +1,186 @@
+<style lang="less" scoped>
+  @import '../../../css/app.less';
+  .dailyInfo-layout {
+    height: fit-content;
+    border-radius: 0 0 15px 15px;
+    box-shadow: 0 5px 30px rgba(0, 0, 0, 0.20);
+    margin-bottom: 60rpx;
+    .image-box {
+      height: 400rpx;
+      image {
+        width: 100%;
+        height: 400rpx;
+      }
+    }
+    .text-box {
+      font-size: @text;
+      height: fit-content;
+      padding: 50rpx;
+      box-sizing: border-box;
+      .daily-english-box {
+        margin-top: 25rpx;
+        color: @textColor;
+        #english {
+          font-size: @mediumTitle;
+          font-weight: bold;
+          color: @titleColor;
+          margin-bottom: 10rpx;
+        }
+        #explain {
+          margin-bottom: 7rpx;
+        }
+      }
+    }
+  }
+  .list-date {
+    font-size: @supportText;
+    color: @textColor;
+    margin-bottom: 20rpx;
+  }
+</style>
+
+<template>
+  <!-- 循环每日一图 -->
+  <repeat for="{{dailyInfo}}" index="index" key="index" item="item">
+    <view class="list-date" wx:if="{{index!==0}}">{{item.date}}</view>
+    <view class="dailyInfo-layout">
+      <view class="image-box">
+        <image src="{{item.picture}}" />
+      </view>
+      <view class="text-box">
+        <text space="emsp">  {{item.sentence}}</text>
+        <view class="daily-english-box">
+          <view id="english">{{item.english}}</view>
+          <!-- 循环单词解释 -->
+          <repeat for="{{item.chineseList}}" index="index" key="index" item="arr">
+            <view id="explain">{{arr.chinese}}</view>
+          </repeat>
+        </view>
+      </view>
+    </view>
+  </repeat>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  export default class index extends wepy.component {
+    components = {}
+    data = {
+      dailyInfo: [],
+      currentDay: ''
+    }
+    methods = {}
+    computed = {}
+    events = {
+      lazyLoad() {
+        const that = this
+        // 获取每日一图信息
+        wepy.request({
+          url: that.$parent.$parent.globalData.URL + 'daily/get',
+          data: {
+            limit: that.dailyInfo.length + 2,
+            date: that.getYearMonthDay()
+          },
+          success(res) {
+            const LIST = res.data.data
+            that.dailyInfo = LIST
+            that.splitString(LIST)
+            that.changeDate(LIST)
+            // 判断加载的条数是否到上限  （加载完成）
+            that.$emit('loadNumber', that.dailyInfo.length)
+            that.$apply()
+          }
+        })
+      }
+    }
+    onLoad() {
+      const that = this
+      // 获取每日一图信息
+      wepy.request({
+        url: that.$parent.$parent.globalData.URL + 'daily/get',
+        data: {
+          limit: 2,
+          date: that.getYearMonthDay()
+        },
+        success(res) {
+          const LIST = res.data.data
+          that.dailyInfo = LIST
+          that.splitString(LIST)
+          that.changeDate(LIST)
+          that.$apply()
+        }
+      })
+    }
+    // 分割字符串
+    splitString(LIST) {
+      const _LIST = LIST
+      let chineseList = []
+      // 分离出dailyInfo中的chinese，push到新的数组
+      const fetchChinese = (item, index) => {
+        chineseList.push(item.chinese)
+        _LIST[index].chineseList = []
+      }
+      // js forEach方法
+      _LIST.forEach(fetchChinese)
+      // 分割chineseList并push到dailyInfo的chineseList
+      const splitChinese = (item, index) => {
+        let chinese = item
+        for (let i = 0; i < 5; i++) {
+          if (chinese.indexOf('}') !== -1) {
+            let markPlace = chinese.indexOf('}')
+            _LIST[index].chineseList.push({
+              chinese: chinese.substring(0, markPlace)
+            })
+            chinese = chinese.substring(markPlace + 1, chinese.length)
+          }
+        }
+      }
+      // js forEach方法
+      chineseList.forEach(splitChinese)
+      this.dailyInfo = _LIST
+      this.$apply()
+    }
+    // 将形如‘2019-01-10’改成‘01/10 星期一’
+    changeDate(LIST) {
+      const _LIST = LIST
+      let whatWeek = {
+        0: '星期日',
+        1: '星期一',
+        2: '星期二',
+        3: '星期三',
+        4: '星期四',
+        5: '星期五',
+        6: '星期六'
+      }
+      // let date = new Date()
+      const fetchWhatWeek = (item, index) => {
+        // 无视正则报错 replace替换 - 为 / ，substring取月日
+        let replaceDate = item.date.replace(/-/g, '/')
+        // 将日期转换为星期数 0123456
+        let weekNumber = new Date(replaceDate).getDay()
+        // 星期数转换为星期几
+        let week = whatWeek[weekNumber]
+        // 只保存月日 01/25
+        let monthAndDay = replaceDate.substring(5, item.date.length)
+        this.dailyInfo[index].date = monthAndDay + ' ' + week
+      }
+      _LIST.forEach(fetchWhatWeek)
+      this.$emit('getDayAndWeek', _LIST[0].date)
+    }
+    // 获取当前的年月日
+    getYearMonthDay() {
+      let date = new Date()
+      let year = date.getFullYear()
+      let month = date.getMonth() + 1
+      let day = date.getDate()
+      if (month < 10) {
+        month = '0' + month
+      }
+      if (day < 10) {
+        day = '0' + day
+      }
+      let nowDate = year + '-' + month + '-' + day
+      return nowDate
+    }
+  }
+</script>
